@@ -186,6 +186,7 @@ version = "0.1.0"
 dependencies = [
  "beryllium",
  "bytemuck",
+ "fermium",
  "gl33",
  "imagine",
  "ultraviolet",
