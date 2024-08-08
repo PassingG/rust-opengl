@@ -1,48 +1,48 @@
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-#![allow(clippy::single_match)]
+use sdl2::event::Event;
+use sdl2::keyboard::Keycode;
+use sdl2::video::GLProfile;
+use std::time::Duration;
 
-const WINDOW_TITLE: &str = "Hello Window";
+fn main() -> Result<(), String> {
+    let sdl_context = sdl2::init()?;
+    let video_subsystem = sdl_context.video()?;
 
-use beryllium::{
-  events::Event,
-  init::InitFlags,
-  video::{CreateWinArgs, GlContextFlags, GlProfile},
-  *,
-};
+    let gl_attr = video_subsystem.gl_attr();
+    gl_attr.set_context_profile(GLProfile::Core);
+    gl_attr.set_context_version(3, 3);
 
-fn main() {
-  let sdl = Sdl::init(InitFlags::EVERYTHING);
-  sdl.set_gl_context_major_version(3).unwrap();
-  sdl.set_gl_context_minor_version(3).unwrap();
-  sdl.set_gl_profile(GlProfile::Core).unwrap();
-  let mut flags = GlContextFlags::default();
-  if cfg!(target_os = "macos") {
-    flags |= GlContextFlags::FORWARD_COMPATIBLE;
-  }
-  if cfg!(debug_asserts) {
-    flags |= GlContextFlags::DEBUG;
-  }
-  sdl.set_gl_context_flags(flags).unwrap();
+    let window = video_subsystem
+        .window("Rust SDL2 OpenGL", 800, 600)
+        .opengl()
+        .build()
+        .map_err(|e| e.to_string())?;
 
-  let _win = sdl
-    .create_gl_window(CreateWinArgs {
-      title: WINDOW_TITLE,
-      width: 800,
-      height: 600,
-      ..Default::default()
-    })
-    .expect("couldn't make a window and context");
+    let _gl_context = window.gl_create_context()?;
+    let _gl: () =
+        gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
-  'main_loop: loop {
-    // handle events this frame
-    while let Some((event, _timestamp)) = sdl.poll_events() {
-      match event {
-        Event::Quit => break 'main_loop,
-        _ => (),
-      }
+    unsafe {
+        gl::ClearColor(0., 0., 0., 1.0);
     }
-    // now the events are clear.
 
-    // here's where we could change the world state and draw.
-  }
+    let mut event_pump = sdl_context.event_pump()?;
+
+    'running: loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. } => break 'running,
+                _ => {}
+            }
+        }
+
+        unsafe {
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
+
+        window.gl_swap_window();
+
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+    }
+
+    Ok(())
 }

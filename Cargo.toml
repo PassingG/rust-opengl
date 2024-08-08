@@ -4,12 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bytemuck = "1"
-gl33 = { version = "0.2.1"}
-ultraviolet = "0.9.2"
+gl = "0.14"
 
 
-[dev-dependencies]
-beryllium = "0.13.3"
-fermium = "22605.0.0"
-imagine = "0.5.1"
+[dependencies.sdl2]
+version = "0.37.0"
+features = ["bundled", "static-link"]
